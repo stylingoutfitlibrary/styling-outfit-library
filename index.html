@@ -123,6 +123,9 @@
 
   /* ---------- Section chrome ---------- */
   .section{max-width:1180px; margin:0 auto; padding:58px 22px 10px;}
+  /* keep the sticky top bar from covering a section's title when jumping to it */
+  .section{scroll-margin-top:26px;}
+  .subsection{scroll-margin-top:92px;}
   .section-head{
     display:flex; justify-content:space-between; align-items:flex-end;
     gap:20px; margin-bottom:26px; border-bottom:1px solid var(--line); padding-bottom:16px;
@@ -270,7 +273,14 @@
 
   @media (max-width:860px){
     .hero{grid-template-columns:1fr; padding-top:40px;}
-    .hero-art{order:-1; max-width:280px; margin:0 auto;}
+    .hero{grid-template-columns:1fr 92px; column-gap:16px; row-gap:0; padding-top:24px; padding-bottom:28px; align-items:center;}
+    .hero > div:first-child{display:contents;}
+    .hero-art{order:0; grid-column:2; grid-row:1 / span 2; width:92px; max-width:92px; margin:0; border-radius:20px;}
+    .hero-art img{width:72%;}
+    .hero-eyebrow{grid-column:1; grid-row:1; margin-bottom:6px; align-self:end;}
+    .hero h1{grid-column:1; grid-row:2; font-size:1.55rem; line-height:1.12; align-self:start;}
+    .hero p{grid-column:1 / -1; margin-top:16px; font-size:.95rem; line-height:1.55;}
+    .hero-links{grid-column:1 / -1; margin-top:18px;}
     nav.mainnav{display:none; flex-direction:column; align-items:flex-start; gap:2px;
       position:absolute; top:100%; left:0; right:0; background:var(--cream);
       border-bottom:1px solid var(--line); padding:10px 22px 16px; max-height:80vh; overflow-y:auto;}
@@ -278,7 +288,12 @@
     .nav-toggle{display:block;}
     .cta-inner{flex-direction:column; text-align:left;}
     .nav-item{width:100%;}
-    .nav-row{width:100%; justify-content:space-between;}
+    nav.mainnav > *{width:100%; position:relative; border-bottom:1px solid var(--line); border-bottom-color:rgba(184,146,106,.35);}
+    nav.mainnav > a{padding:13px 4px; border-bottom:1px solid rgba(184,146,106,.35);}
+    nav.mainnav > a.active{border-bottom-color:var(--gold);}
+    nav.mainnav > a:last-child{border-bottom:none;}
+    nav.mainnav > *:last-child{border-bottom:none;}
+    .nav-row{width:100%; justify-content:space-between; padding:5px 4px;}
     .nav-expand{font-size:.9rem; padding:8px 6px;}
     .subnav{
       position:static; display:none; border:none; box-shadow:none; padding:2px 0 4px 14px;
