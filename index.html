@@ -315,6 +315,56 @@
     .ad-badge{font-size:.55rem; padding:3px 7px; top:8px; left:8px;}
   }
 </style>
+
+<style id="demo-style">
+/* ===== DEMO: each board opens as its own page ===== */
+.boards-wrap{max-width:1180px; margin:0 auto; padding:8px 22px 56px;}
+.boards-head{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid var(--line);}
+.boards-head h2{font-size:clamp(1.5rem,2.6vw,2.1rem); font-style:italic;}
+.boards-head .count{font-size:.68rem; letter-spacing:.22em; text-transform:uppercase; color:var(--mocha); white-space:nowrap;}
+.board-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+.board-tile{
+  position:relative; display:block; aspect-ratio:4/5; border-radius:24px; overflow:hidden;
+  background:var(--cream); border:1px solid var(--line); box-shadow:var(--shadow); cursor:pointer;
+  transition:transform .35s ease, box-shadow .35s ease;
+}
+.board-tile img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .6s ease;}
+.board-tile::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(62,44,34,.82) 0%, rgba(62,44,34,.25) 42%, rgba(62,44,34,0) 70%);}
+.board-tile:hover{transform:translateY(-4px);}
+.board-tile:hover img{transform:scale(1.05);}
+.board-tile .bt-text{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:18px 18px 20px; color:#fff;}
+.board-tile .bt-eyebrow{font-size:.58rem; letter-spacing:.24em; text-transform:uppercase; opacity:.85;}
+.board-tile h3{font-family:var(--font-display); font-style:italic; font-weight:500; font-size:1.55rem; line-height:1.05; margin-top:6px; color:#fff;}
+.board-tile .bt-line{display:block; width:34px; height:1px; background:rgba(255,255,255,.7); margin:10px 0 8px;}
+.board-tile .bt-count{font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; opacity:.9;}
+.board-tile .bt-arrow{position:absolute; top:14px; right:14px; z-index:2; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.88); color:var(--espresso); display:flex; align-items:center; justify-content:center; font-size:.9rem;}
+
+.board-back{max-width:1180px; margin:0 auto; padding:26px 22px 0; display:none;}
+.board-back a{display:inline-flex; align-items:center; gap:8px; font-size:.7rem; letter-spacing:.18em; text-transform:uppercase; color:var(--mocha); padding:9px 16px; border:1px solid var(--line); border-radius:999px; background:#fff; cursor:pointer;}
+.board-back a:hover{border-color:var(--gold); color:var(--espresso);}
+.board-next{max-width:1180px; margin:0 auto; padding:10px 22px 50px; display:none; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+.board-next a{font-family:var(--font-display); font-style:italic; font-size:1.25rem; color:var(--espresso); border-bottom:1px solid var(--gold); padding-bottom:2px; cursor:pointer;}
+
+/* state switching */
+body.demo-home .section{display:none;}
+body.demo-section .section{display:none;}
+body.demo-section .section.active-board{display:block;}
+body.demo-section .hero, body.demo-section .boards-wrap{display:none;}
+body.demo-section .board-back{display:block;}
+body.demo-section .board-next{display:flex;}
+body.demo-section .section.active-board{padding-top:28px;}
+
+@media (max-width:980px){ .board-grid{grid-template-columns:repeat(3,1fr);} }
+@media (max-width:640px){
+  .board-grid{grid-template-columns:repeat(2,1fr); gap:12px;}
+  .board-tile{border-radius:18px;}
+  .board-tile .bt-text{padding:12px 12px 14px;}
+  .board-tile h3{font-size:1.15rem;}
+  .board-tile .bt-count{font-size:.55rem;}
+  .board-tile .bt-arrow{width:28px; height:28px; top:10px; right:10px; font-size:.75rem;}
+  .boards-wrap{padding-bottom:38px;}
+}
+</style>
 </head>
 <body>
 
@@ -1667,6 +1717,95 @@ document.getElementById('affiliate-form').addEventListener('submit', function(e)
 buildNav();
 renderSections();
 document.body.classList.add('ready');
+</script>
+
+<script id="demo-script">
+(function(){
+  // which look to use as each board's cover photo (matched by name; default = first look)
+  const COVER_NAME = { "beauty":"Flower Knows Strawberry", "autumn-winter":"Brown & Cream Fall Outfit", "sportswear":"Brown&White Sportswear" };
+  const body = document.body;
+  const hero = document.querySelector('.hero');
+  const sections = [...document.querySelectorAll('section.section')];
+  const order = sections.map(s => s.id);
+
+  // 1) build the boards grid after the hero
+  const wrap = document.createElement('div');
+  wrap.className = 'boards-wrap'; wrap.id = 'boards';
+  wrap.innerHTML = `<div class="boards-head"><div><div class="eyebrow">Browse</div><h2>Pick a board</h2></div><div class="count">${sections.length} boards</div></div><div class="board-grid"></div>`;
+  const grid = wrap.querySelector('.board-grid');
+  sections.forEach(sec => {
+    const title = sec.querySelector('h2').textContent.trim();
+    const count = (sec.querySelector('.section-count')||{}).textContent || '';
+    const cards = [...sec.querySelectorAll('.card')];
+    const want = COVER_NAME[sec.id];
+    const pick = (want && cards.find(c => (c.querySelector('h4')||{}).textContent.replace(/\s+/g,' ').trim().indexOf(want) === 0)) || cards[0];
+    const cover = pick ? pick.querySelector('img').src : '';
+    const a = document.createElement('a');
+    a.className = 'board-tile'; a.href = '#'+sec.id; a.setAttribute('data-board', sec.id);
+    a.innerHTML = `<img src="${cover}" alt="${title}" loading="lazy"><span class="bt-arrow">→</span><div class="bt-text"><div class="bt-eyebrow">Shop the board</div><h3>${title}</h3><span class="bt-line"></span><div class="bt-count">${count}</div></div>`;
+    grid.appendChild(a);
+  });
+  hero.insertAdjacentElement('afterend', wrap);
+
+  // 2) back button above, "next board" below
+  const back = document.createElement('div');
+  back.className = 'board-back';
+  back.innerHTML = `<a data-board="">← All boards</a>`;
+  const root = document.getElementById('sections-root');
+  root.insertAdjacentElement('beforebegin', back);
+  const next = document.createElement('div');
+  next.className = 'board-next';
+  root.insertAdjacentElement('afterend', next);
+
+  // hero button -> scroll to boards
+  const heroBtn = hero.querySelector('a.btn-solid');
+  if(heroBtn){ heroBtn.setAttribute('href','#boards'); }
+
+  function titleOf(id){ return document.querySelector('#'+CSS.escape(id)+' h2').textContent.trim(); }
+
+  function showBoard(id, sub){
+    sections.forEach(s => s.classList.toggle('active-board', s.id === id));
+    body.classList.remove('demo-home'); body.classList.add('demo-section');
+    const i = order.indexOf(id);
+    const prev = order[(i-1+order.length)%order.length], nxt = order[(i+1)%order.length];
+    next.innerHTML = `<a data-board="${prev}">← ${titleOf(prev)}</a><a data-board="${nxt}">${titleOf(nxt)} →</a>`;
+    if(sub){ const el = document.getElementById(sub); if(el){ el.scrollIntoView(); return; } }
+    window.scrollTo(0,0);
+  }
+  function showHomeGrid(scrollToBoards){
+    sections.forEach(s => s.classList.remove('active-board'));
+    body.classList.remove('demo-section'); body.classList.add('demo-home');
+    if(scrollToBoards){ wrap.scrollIntoView(); } else { window.scrollTo(0,0); }
+  }
+  function route(hash, push){
+    const h = (hash||'').replace(/^#/,'');
+    // make sure we're out of the privacy / affiliate pages
+    if(typeof showHome === 'function') showHome();
+    let target = order.find(id => id === h);
+    let sub = null;
+    if(!target){ target = order.find(id => h.indexOf(id+'-') === 0); if(target) sub = h; }
+    if(push) history.pushState(null,'', h ? '#'+h : location.pathname);
+    if(target) showBoard(target, sub);
+    else showHomeGrid(h === 'boards');
+  }
+
+  // 3) intercept navigation clicks (capture phase, before the site's own handler)
+  document.addEventListener('click', function(e){
+    const t = e.target.closest('a[data-board]');
+    if(t){ e.preventDefault(); e.stopImmediatePropagation(); route(t.getAttribute('data-board') ? '#'+t.getAttribute('data-board') : '', true); return; }
+    const a = e.target.closest('a[data-action="home"]');
+    if(a){
+      e.preventDefault(); e.stopImmediatePropagation();
+      const href = a.getAttribute('href') || '#home';
+      route(href === '#home' ? '' : href, true);
+      document.getElementById('mainnav').classList.remove('open');
+    }
+  }, true);
+  window.addEventListener('popstate', () => route(location.hash, false));
+
+  // 4) start on home grid (or on a board if the URL has one)
+  route(location.hash, false);
+})();
 </script>
 </body>
 </html>
